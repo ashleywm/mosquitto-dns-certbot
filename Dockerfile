@@ -1,5 +1,5 @@
-FROM python:2.7-alpine
-LABEL maintainer bitrox <proxy@bitrox.io>
+FROM python:3-slim AS mosquitto-tls
+LABEL maintainer ashleywm <ashley@ashleywm.co.uk>
 
 # Set environment variables.
 ENV TERM=xterm-color
@@ -9,20 +9,25 @@ RUN \
 	mkdir /mosquitto && \
 	mkdir /mosquitto/log && \
 	mkdir /mosquitto/conf && \
-	apk update && \
-	apk upgrade && \
-	apk add \
+	mkdir /secrets && \
+	apt update && \
+	apt upgrade && \
+	apt install \
+		procps \
 		bash \
 		coreutils \
 		nano \
-        	py-crypto \
 		ca-certificates \
-        	certbot \
+		certbot \
 		mosquitto \
-		mosquitto-clients && \
-	rm -f /var/cache/apk/* && \
+		mosquitto-clients -y && \
+	rm -rf /var/cache/apt/* && \
 	pip install --upgrade pip && \
-	pip install pyRFC3339 configobj ConfigArgParse
+	pip install pyRFC3339 configobj ConfigArgParse cloudflare
+
+RUN \
+	pip3 install --upgrade pip setuptools wheel && \
+	pip3 install certbot-dns-cloudflare
 
 COPY run.sh /run.sh
 COPY certbot.sh /certbot.sh
@@ -34,10 +39,9 @@ RUN \
 	chmod +x /restart.sh && \
 	chmod +x /etc/periodic/weekly/croncert.sh
 
-EXPOSE 1883
+EXPOSE 8083
 EXPOSE 8883
-EXPOSE 80
 
 # This will run any scripts found in /scripts/*.sh
-# then start Apache
+# then start Mosquitto
 CMD ["/bin/bash","-c","/run.sh"]

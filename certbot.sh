@@ -11,47 +11,46 @@
 #               the mosquitto process is restarted, causing
 #               a brief (few second) unavoidable service disruption
 #
-# If the environment varialbe TESTCERT is defined, this script
+# If the environment varialbe DRYRUN is defined, this script
 # will use --staging --test-cert for obtaining a cert and --dry-run for renewal
 # This allows the user to test out the configuration and connectivity for obtaining
-# certs without running into LetsEncrypt limits. It's advisable to define TESTCERT
+# certs without running into LetsEncrypt limits. It's advisable to define DRYRUN
 # when initially bringing up the container.  Once the logs (docker logs <containername>) 
-# show that LetsEncrypt is working fine, then remove TESTCERT environment variable
+# show that LetsEncrypt is working fine, then remove DRYRUN environment variable
 # to let this script obtain and manage the real certificates
 #
 
 FOLDER="/etc/letsencrypt/live/$DOMAIN"
-echo "Dealing with certificates..."
+echo "Performing cerbot actions"
 echo "Location: $FOLDER"
 if [ -d "$FOLDER" ]; then
-        echo "Certificates exist, attempting to renew..."
-        if [ ! -z "$TESTCERT" ]; then
-                echo "Renew dry run ..."
+        if [ ! -z "$DRYRUN" ]; then
+                echo "Attempting dry run certificate renewal"
                 certbot renew --dry-run --noninteractive --post-hook "/restart.sh"
         else
-                echo "Renew certs ..."
+                echo "Attempting certificate renewal"
                 certbot renew --noninteractive --post-hook "/restart.sh"
         fi
 else
         if [ ! -z "$DOMAIN" ]; then
                 if [ ! -z "$EMAIL" ]; then
-                        if [ ! -z "$TESTCERT" ]; then
-                                echo "Obtaining TEST cert for $DOMAIN"
+                        if [ ! -z "$DRYRUN" ]; then
+                                echo "Performing cerbot dry run for $DOMAIN"
                                 certbot certonly \
                                         --staging \
                                         --test-cert \
-                                        --standalone \
                                         --agree-tos \
-                                        --standalone-supported-challenges http-01 \
+                                        --dns-cloudflare \
+                                        --dns-cloudflare-credentials /secrets/cloudflare.ini \
                                         -n \
                                         -d $DOMAIN \
                                         -m $EMAIL
                         else
                                 echo "Obtaining cert for $DOMAIN"
                                 certbot certonly \
-                                        --standalone \
                                         --agree-tos \
-                                        --standalone-supported-challenges http-01 \
+                                        --dns-cloudflare \
+                                        --dns-cloudflare-credentials /secrets/cloudflare.ini \
                                         -n \
                                         -d $DOMAIN \
                                         -m $EMAIL

@@ -30,6 +30,12 @@ if [ ! -d "/mosquitto/log" ]; then
 	echo "WARNING: ignore if your mosquitto.conf has a non-standard configuration" 
 fi
 
+# Check if cloudflare credentials exist
+if [ ! -f "/secrets/cloudflare.ini" ]; then
+	echo "WARNING: missing /secrets/cloudflare.ini file"
+fi
+
+
 # create blank passwd if it doesn't exist
 if [ -d "/mosquitto/conf" ]; then
 	if [ ! -f "/mosquitto/conf/passwd" ]; then

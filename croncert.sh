@@ -1,4 +1,4 @@
 #!/bin/bash
 
-echo "Checking on certificates..."
+echo "Checking certificates..."
 /certbot.sh
