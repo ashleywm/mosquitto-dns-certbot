@@ -28,6 +28,7 @@ The scripts associated with this image assume a standard directory structure for
 /mosquitto/log/
 /letsencrypt/
 /secrets/
+  cloudflare.ini
 ```
 
 **/mosquitto/conf/** - this directory is where Mosquitto will look for the mosquitto.conf file.
